@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ActivityController : ControllerBase
 {
     private readonly ILogger<ActivityController> _logger;
@@ -17,15 +19,15 @@ public class ActivityController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Activity>> GetAll()
+    public async Task<ActionResult<List<Activity>>> GetAll()
     {
-        return Ok(_activityDAO.GetAllActivities());
+        return Ok(await _activityDAO.GetAllActivitiesAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Activity> GetById(long id)
+    public async Task<ActionResult<Activity>> GetById(long id)
     {
-        Activity? activity = _activityDAO.ReadActivityById(id);
+        Activity? activity = await _activityDAO.ReadActivityByIdAsync(id);
         if (activity == null)
         {
             return NotFound();
@@ -34,17 +36,17 @@ public class ActivityController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Activity> CreateActivity(Activity activity)
+    public async Task<ActionResult<Activity>> CreateActivity(Activity activity)
     {
-        Activity createdActivity = _activityDAO.CreateActivity(activity);
+        Activity createdActivity = await _activityDAO.CreateActivityAsync(activity);
         return CreatedAtAction(nameof(GetById), new { id = createdActivity.Id }, createdActivity);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Activity> UpdateActivity(long id, Activity activity)
+    public async Task<ActionResult<Activity>> UpdateActivity(long id, Activity activity)
     {
         activity.Id = id;
-        bool updated = _activityDAO.UpdateActivity(activity);
+        bool updated = await _activityDAO.UpdateActivityAsync(activity);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +55,9 @@ public class ActivityController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteActivity(long id)
+    public async Task<IActionResult> DeleteActivity(long id)
     {
-        bool deleted = _activityDAO.DeleteActivityById(id);
+        bool deleted = await _activityDAO.DeleteActivityByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

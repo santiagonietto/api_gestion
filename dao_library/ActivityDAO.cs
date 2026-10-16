@@ -1,25 +1,32 @@
 namespace dao_library;
+using dao_library.entity_framework;
 using entity_library;
+using Microsoft.EntityFrameworkCore;
 
 public class ActivityDAO
 {
-    public Activity CreateActivity(Activity activity)
+    private readonly AppDbContext _db;
+
+    public ActivityDAO(AppDbContext db)
     {
-        activity.Id = MockDatabase.Activities.Count > 0
-            ? MockDatabase.Activities.Max(a => a.Id) + 1
-            : 1;
-        MockDatabase.Activities.Add(activity);
+        _db = db;
+    }
+
+    public async Task<Activity> CreateActivityAsync(Activity activity)
+    {
+        _db.Activities.Add(activity);
+        await _db.SaveChangesAsync();
         return activity;
     }
 
-    public Activity? ReadActivityById(long id)
+    public Task<Activity?> ReadActivityByIdAsync(long id)
     {
-        return MockDatabase.Activities.FirstOrDefault(a => a.Id == id);
+        return _db.Activities.FirstOrDefaultAsync(a => a.Id == id);
     }
 
-    public bool UpdateActivity(Activity activity)
+    public async Task<bool> UpdateActivityAsync(Activity activity)
     {
-        Activity? existing = ReadActivityById(activity.Id);
+        Activity? existing = await _db.Activities.FindAsync(activity.Id);
         if (existing == null)
         {
             return false;
@@ -29,23 +36,26 @@ public class ActivityDAO
         existing.Description = activity.Description;
         existing.Date = activity.Date;
         existing.TypeActivity = activity.TypeActivity;
+        existing.CourseId = activity.CourseId;
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool DeleteActivityById(long id)
+    public async Task<bool> DeleteActivityByIdAsync(long id)
     {
-        Activity? existing = ReadActivityById(id);
+        Activity? existing = await _db.Activities.FindAsync(id);
         if (existing == null)
         {
             return false;
         }
 
-        MockDatabase.Activities.Remove(existing);
+        _db.Activities.Remove(existing);
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public List<Activity> GetAllActivities()
+    public Task<List<Activity>> GetAllActivitiesAsync()
     {
-        return MockDatabase.Activities;
+        return _db.Activities.AsNoTracking().ToListAsync();
     }
 }

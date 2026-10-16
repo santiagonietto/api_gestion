@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PlayerController : ControllerBase
 {
     private readonly ILogger<PlayerController> _logger;
@@ -17,15 +19,15 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Player>> GetAll()
+    public async Task<ActionResult<List<Player>>> GetAll()
     {
-        return Ok(_playerDAO.GetAllPlayers());
+        return Ok(await _playerDAO.GetAllPlayersAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Player> GetById(long id)
+    public async Task<ActionResult<Player>> GetById(long id)
     {
-        Player? player = _playerDAO.ReadPlayerById(id);
+        Player? player = await _playerDAO.ReadPlayerByIdAsync(id);
         if (player == null)
         {
             return NotFound();
@@ -33,18 +35,24 @@ public class PlayerController : ControllerBase
         return Ok(player);
     }
 
-    [HttpPost]
-    public ActionResult<Player> CreatePlayer(Player player)
+    [HttpGet("byteam/{teamId}")]
+    public async Task<ActionResult<List<Player>>> GetByTeam(long teamId)
     {
-        Player createdPlayer = _playerDAO.CreatePlayer(player);
+        return Ok(await _playerDAO.GetPlayersByTeamAsync(teamId));
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Player>> CreatePlayer(Player player)
+    {
+        Player createdPlayer = await _playerDAO.CreatePlayerAsync(player);
         return CreatedAtAction(nameof(GetById), new { id = createdPlayer.Id }, createdPlayer);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Player> UpdatePlayer(long id, Player player)
+    public async Task<ActionResult<Player>> UpdatePlayer(long id, Player player)
     {
         player.Id = id;
-        bool updated = _playerDAO.UpdatePlayer(player);
+        bool updated = await _playerDAO.UpdatePlayerAsync(player);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +61,9 @@ public class PlayerController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeletePlayer(long id)
+    public async Task<IActionResult> DeletePlayer(long id)
     {
-        bool deleted = _playerDAO.DeletePlayerById(id);
+        bool deleted = await _playerDAO.DeletePlayerByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

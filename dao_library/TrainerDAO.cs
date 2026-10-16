@@ -1,25 +1,32 @@
 namespace dao_library;
+using dao_library.entity_framework;
 using entity_library;
+using Microsoft.EntityFrameworkCore;
 
 public class TrainerDAO
 {
-    public Trainer CreateTrainer(Trainer trainer)
+    private readonly AppDbContext _db;
+
+    public TrainerDAO(AppDbContext db)
     {
-        trainer.Id = MockDatabase.Trainers.Count > 0
-            ? MockDatabase.Trainers.Max(t => t.Id) + 1
-            : 1;
-        MockDatabase.Trainers.Add(trainer);
+        _db = db;
+    }
+
+    public async Task<Trainer> CreateTrainerAsync(Trainer trainer)
+    {
+        _db.Trainers.Add(trainer);
+        await _db.SaveChangesAsync();
         return trainer;
     }
 
-    public Trainer? ReadTrainerById(long id)
+    public Task<Trainer?> ReadTrainerByIdAsync(long id)
     {
-        return MockDatabase.Trainers.FirstOrDefault(t => t.Id == id);
+        return _db.Trainers.FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    public bool UpdateTrainer(Trainer trainer)
+    public async Task<bool> UpdateTrainerAsync(Trainer trainer)
     {
-        Trainer? existing = ReadTrainerById(trainer.Id);
+        Trainer? existing = await _db.Trainers.FindAsync(trainer.Id);
         if (existing == null)
         {
             return false;
@@ -28,23 +35,25 @@ public class TrainerDAO
         existing.Name = trainer.Name;
         existing.Age = trainer.Age;
         existing.Dni = trainer.Dni;
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool DeleteTrainerById(long id)
+    public async Task<bool> DeleteTrainerByIdAsync(long id)
     {
-        Trainer? existing = ReadTrainerById(id);
+        Trainer? existing = await _db.Trainers.FindAsync(id);
         if (existing == null)
         {
             return false;
         }
 
-        MockDatabase.Trainers.Remove(existing);
+        _db.Trainers.Remove(existing);
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public List<Trainer> GetAllTrainers()
+    public Task<List<Trainer>> GetAllTrainersAsync()
     {
-        return MockDatabase.Trainers;
+        return _db.Trainers.AsNoTracking().ToListAsync();
     }
 }

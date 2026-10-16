@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PersonController : ControllerBase
 {
     private readonly ILogger<PersonController> _logger;
@@ -17,15 +19,15 @@ public class PersonController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Person>> GetAll()
+    public async Task<ActionResult<List<Person>>> GetAll()
     {
-        return Ok(_personDAO.GetAllPeople());
+        return Ok(await _personDAO.GetAllPeopleAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Person> GetById(long id)
+    public async Task<ActionResult<Person>> GetById(long id)
     {
-        Person? person = _personDAO.ReadPersonById(id);
+        Person? person = await _personDAO.ReadPersonByIdAsync(id);
         if (person == null)
         {
             return NotFound();
@@ -34,17 +36,17 @@ public class PersonController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Person> CreatePerson(Person person)
+    public async Task<ActionResult<Person>> CreatePerson(Person person)
     {
-        Person createdPerson = _personDAO.CreatePerson(person);
+        Person createdPerson = await _personDAO.CreatePersonAsync(person);
         return CreatedAtAction(nameof(GetById), new { id = createdPerson.Id }, createdPerson);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Person> UpdatePerson(long id, Person person)
+    public async Task<ActionResult<Person>> UpdatePerson(long id, Person person)
     {
         person.Id = id;
-        bool updated = _personDAO.UpdatePerson(person);
+        bool updated = await _personDAO.UpdatePersonAsync(person);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +55,9 @@ public class PersonController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeletePerson(long id)
+    public async Task<IActionResult> DeletePerson(long id)
     {
-        bool deleted = _personDAO.DeletePersonById(id);
+        bool deleted = await _personDAO.DeletePersonByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
@@ -17,15 +19,15 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<User>> GetAll()
+    public async Task<ActionResult<List<User>>> GetAll()
     {
-        return Ok(_userDAO.GetAllUsers());
+        return Ok(await _userDAO.GetAllUsersAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<User> GetById(long id)
+    public async Task<ActionResult<User>> GetById(long id)
     {
-        User? user = _userDAO.ReadUserById(id);
+        User? user = await _userDAO.ReadUserByIdAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -34,9 +36,9 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("email/{email}")]
-    public ActionResult<User> GetByEmail(string email)
+    public async Task<ActionResult<User>> GetByEmail(string email)
     {
-        User? user = _userDAO.GetUserEmail(email);
+        User? user = await _userDAO.GetUserEmailAsync(email);
         if (user == null)
         {
             return NotFound();
@@ -45,44 +47,44 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<User> CreateUser(User user)
+    public async Task<ActionResult<User>> CreateUser(User user)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        if (_userDAO.GetUserEmail(user.Email) != null)
+        if (await _userDAO.GetUserEmailAsync(user.Email) != null)
         {
             return BadRequest("User with the same email already exists.");
         }
 
-        User createdUser = _userDAO.CreateUser(user);
+        User createdUser = await _userDAO.CreateUserAsync(user);
         return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<User> UpdateUser(long id, User user)
+    public async Task<ActionResult<User>> UpdateUser(long id, User user)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        User? existingUser = _userDAO.ReadUserById(id);
+        User? existingUser = await _userDAO.ReadUserByIdAsync(id);
         if (existingUser == null)
         {
             return NotFound();
         }
 
         user.Id = id;
-        _userDAO.UpdateUser(user);
+        await _userDAO.UpdateUserAsync(user);
         return Ok(user);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteUser(long id)
+    public async Task<IActionResult> DeleteUser(long id)
     {
-        bool deleted = _userDAO.DeleteUserById(id);
+        bool deleted = await _userDAO.DeleteUserByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

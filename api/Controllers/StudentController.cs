@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class StudentController : ControllerBase
 {
     private readonly ILogger<StudentController> _logger;
@@ -17,15 +19,15 @@ public class StudentController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Student>> GetAll()
+    public async Task<ActionResult<List<Student>>> GetAll()
     {
-        return Ok(_studentDAO.GetAllStudents());
+        return Ok(await _studentDAO.GetAllStudentsAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Student> GetById(long id)
+    public async Task<ActionResult<Student>> GetById(long id)
     {
-        Student? student = _studentDAO.ReadStudentById(id);
+        Student? student = await _studentDAO.ReadStudentByIdAsync(id);
         if (student == null)
         {
             return NotFound();
@@ -34,17 +36,17 @@ public class StudentController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Student> CreateStudent(Student student)
+    public async Task<ActionResult<Student>> CreateStudent(Student student)
     {
-        Student createdStudent = _studentDAO.CreateStudent(student);
+        Student createdStudent = await _studentDAO.CreateStudentAsync(student);
         return CreatedAtAction(nameof(GetById), new { id = createdStudent.Id }, createdStudent);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Student> UpdateStudent(long id, Student student)
+    public async Task<ActionResult<Student>> UpdateStudent(long id, Student student)
     {
         student.Id = id;
-        bool updated = _studentDAO.UpdateStudent(student);
+        bool updated = await _studentDAO.UpdateStudentAsync(student);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +55,9 @@ public class StudentController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteStudent(long id)
+    public async Task<IActionResult> DeleteStudent(long id)
     {
-        bool deleted = _studentDAO.DeleteStudentById(id);
+        bool deleted = await _studentDAO.DeleteStudentByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

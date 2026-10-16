@@ -37,4 +37,8 @@ public class Activity
         get { return typeActivity; }
         set { typeActivity = value; }
     }
+
+    // FK para EF Core: una Activity pertenece a un Course (opcional para no romper el mock)
+    public long? CourseId { get; set; }
+    public Course? Course { get; set; }
 }

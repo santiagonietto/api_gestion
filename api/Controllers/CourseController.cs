@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CourseController : ControllerBase
 {
     private readonly ILogger<CourseController> _logger;
@@ -17,15 +19,15 @@ public class CourseController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Course>> GetAll()
+    public async Task<ActionResult<List<Course>>> GetAll()
     {
-        return Ok(_courseDAO.GetAllCourses());
+        return Ok(await _courseDAO.GetAllCoursesAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Course> GetById(long id)
+    public async Task<ActionResult<Course>> GetById(long id)
     {
-        Course? course = _courseDAO.ReadCourseById(id);
+        Course? course = await _courseDAO.ReadCourseByIdAsync(id);
         if (course == null)
         {
             return NotFound();
@@ -34,17 +36,17 @@ public class CourseController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Course> CreateCourse(Course course)
+    public async Task<ActionResult<Course>> CreateCourse(Course course)
     {
-        Course createdCourse = _courseDAO.CreateCourse(course);
+        Course createdCourse = await _courseDAO.CreateCourseAsync(course);
         return CreatedAtAction(nameof(GetById), new { id = createdCourse.Id }, createdCourse);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Course> UpdateCourse(long id, Course course)
+    public async Task<ActionResult<Course>> UpdateCourse(long id, Course course)
     {
         course.Id = id;
-        bool updated = _courseDAO.UpdateCourse(course);
+        bool updated = await _courseDAO.UpdateCourseAsync(course);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +55,9 @@ public class CourseController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteCourse(long id)
+    public async Task<IActionResult> DeleteCourse(long id)
     {
-        bool deleted = _courseDAO.DeleteCourseById(id);
+        bool deleted = await _courseDAO.DeleteCourseByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

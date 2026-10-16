@@ -18,7 +18,7 @@ public static class MockDatabase
             Name = "Pedro",
             Dni = "1234",
             Email = "pedro@email.com",
-            Password = "1234"
+            Password = "$2b$11$qDw/LVvFIObYfkZ8LmteIu2w34rLGl0W/zVjBdc4.Lw6B.cTZ4CsG"
         },
         new User
         {
@@ -26,7 +26,16 @@ public static class MockDatabase
             Name = "Ana",
             Dni = "5678",
             Email = "ana@email.com",
-            Password = "abcd"
+            Password = "$2b$11$9lbe7XxI81kwn1cwbTf7VuRdtXIw.2WB6cWczn1xwh6U/lVEpPw4a"
+        },
+        new User
+        {
+            Id = 3,
+            Name = "User",
+            Age = 30,
+            Dni = "00000000",
+            Email = "user@gestion.local",
+            Password = "$2b$11$SLXCxO7wO6ks7qkw/98LK.nZCzPSfmOpkApCYDf4xsdLAuSS2peBu"
         }
     };
 

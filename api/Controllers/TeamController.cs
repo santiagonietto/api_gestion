@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TeamController : ControllerBase
 {
     private readonly ILogger<TeamController> _logger;
@@ -17,15 +19,15 @@ public class TeamController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Team>> GetAll()
+    public async Task<ActionResult<List<Team>>> GetAll()
     {
-        return Ok(_teamDAO.GetAllTeams());
+        return Ok(await _teamDAO.GetAllTeamsAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Team> GetById(long id)
+    public async Task<ActionResult<Team>> GetById(long id)
     {
-        Team? team = _teamDAO.ReadTeamById(id);
+        Team? team = await _teamDAO.ReadTeamByIdAsync(id);
         if (team == null)
         {
             return NotFound();
@@ -34,17 +36,17 @@ public class TeamController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Team> CreateTeam(Team team)
+    public async Task<ActionResult<Team>> CreateTeam(Team team)
     {
-        Team createdTeam = _teamDAO.CreateTeam(team);
+        Team createdTeam = await _teamDAO.CreateTeamAsync(team);
         return CreatedAtAction(nameof(GetById), new { id = createdTeam.Id }, createdTeam);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Team> UpdateTeam(long id, Team team)
+    public async Task<ActionResult<Team>> UpdateTeam(long id, Team team)
     {
         team.Id = id;
-        bool updated = _teamDAO.UpdateTeam(team);
+        bool updated = await _teamDAO.UpdateTeamAsync(team);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +55,9 @@ public class TeamController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteTeam(long id)
+    public async Task<IActionResult> DeleteTeam(long id)
     {
-        bool deleted = _teamDAO.DeleteTeamById(id);
+        bool deleted = await _teamDAO.DeleteTeamByIdAsync(id);
         if (!deleted)
         {
             return NotFound();

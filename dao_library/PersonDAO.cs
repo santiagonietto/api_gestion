@@ -1,25 +1,32 @@
 namespace dao_library;
+using dao_library.entity_framework;
 using entity_library;
+using Microsoft.EntityFrameworkCore;
 
 public class PersonDAO
 {
-    public Person CreatePerson(Person person)
+    private readonly AppDbContext _db;
+
+    public PersonDAO(AppDbContext db)
     {
-        person.Id = MockDatabase.People.Count > 0
-            ? MockDatabase.People.Max(p => p.Id) + 1
-            : 1;
-        MockDatabase.People.Add(person);
+        _db = db;
+    }
+
+    public async Task<Person> CreatePersonAsync(Person person)
+    {
+        _db.People.Add(person);
+        await _db.SaveChangesAsync();
         return person;
     }
 
-    public Person? ReadPersonById(long id)
+    public Task<Person?> ReadPersonByIdAsync(long id)
     {
-        return MockDatabase.People.FirstOrDefault(p => p.Id == id);
+        return _db.People.FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public bool UpdatePerson(Person person)
+    public async Task<bool> UpdatePersonAsync(Person person)
     {
-        Person? existing = ReadPersonById(person.Id);
+        Person? existing = await _db.People.FindAsync(person.Id);
         if (existing == null)
         {
             return false;
@@ -28,23 +35,25 @@ public class PersonDAO
         existing.Name = person.Name;
         existing.Age = person.Age;
         existing.Dni = person.Dni;
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public bool DeletePersonById(long id)
+    public async Task<bool> DeletePersonByIdAsync(long id)
     {
-        Person? existing = ReadPersonById(id);
+        Person? existing = await _db.People.FindAsync(id);
         if (existing == null)
         {
             return false;
         }
 
-        MockDatabase.People.Remove(existing);
+        _db.People.Remove(existing);
+        await _db.SaveChangesAsync();
         return true;
     }
 
-    public List<Person> GetAllPeople()
+    public Task<List<Person>> GetAllPeopleAsync()
     {
-        return MockDatabase.People;
+        return _db.People.AsNoTracking().ToListAsync();
     }
 }

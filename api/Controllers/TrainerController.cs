@@ -1,10 +1,12 @@
 namespace api.Controllers;
 using entity_library;
 using dao_library;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TrainerController : ControllerBase
 {
     private readonly ILogger<TrainerController> _logger;
@@ -17,15 +19,15 @@ public class TrainerController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Trainer>> GetAll()
+    public async Task<ActionResult<List<Trainer>>> GetAll()
     {
-        return Ok(_trainerDAO.GetAllTrainers());
+        return Ok(await _trainerDAO.GetAllTrainersAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Trainer> GetById(long id)
+    public async Task<ActionResult<Trainer>> GetById(long id)
     {
-        Trainer? trainer = _trainerDAO.ReadTrainerById(id);
+        Trainer? trainer = await _trainerDAO.ReadTrainerByIdAsync(id);
         if (trainer == null)
         {
             return NotFound();
@@ -34,17 +36,17 @@ public class TrainerController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Trainer> CreateTrainer(Trainer trainer)
+    public async Task<ActionResult<Trainer>> CreateTrainer(Trainer trainer)
     {
-        Trainer createdTrainer = _trainerDAO.CreateTrainer(trainer);
+        Trainer createdTrainer = await _trainerDAO.CreateTrainerAsync(trainer);
         return CreatedAtAction(nameof(GetById), new { id = createdTrainer.Id }, createdTrainer);
     }
 
     [HttpPut("{id}")]
-    public ActionResult<Trainer> UpdateTrainer(long id, Trainer trainer)
+    public async Task<ActionResult<Trainer>> UpdateTrainer(long id, Trainer trainer)
     {
         trainer.Id = id;
-        bool updated = _trainerDAO.UpdateTrainer(trainer);
+        bool updated = await _trainerDAO.UpdateTrainerAsync(trainer);
         if (!updated)
         {
             return NotFound();
@@ -53,9 +55,9 @@ public class TrainerController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteTrainer(long id)
+    public async Task<IActionResult> DeleteTrainer(long id)
     {
-        bool deleted = _trainerDAO.DeleteTrainerById(id);
+        bool deleted = await _trainerDAO.DeleteTrainerByIdAsync(id);
         if (!deleted)
         {
             return NotFound();
